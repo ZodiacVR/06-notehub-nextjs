@@ -1,79 +1,54 @@
-import axios from 'axios';
-import type { Note } from '../types/note';
+import axios from "axios";
+import type { Note } from "../types/note";
 
-interface NotesHttpResponse {
-  notes: Note[];
-  totalPages: number;
+const BASE_URL = "https://notehub-public.goit.study/api/notes";
+const TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
+
+if (!TOKEN) {
+  throw new Error("NEXT_PUBLIC_NOTEHUB_TOKEN is not defined in environment variables");
 }
 
-interface NewNote {
-  title: string;
-  content: string;
-  tag: 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';
+const noteServiceClient = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    Authorization: `Bearer ${TOKEN}`,
+  },
+});
+
+interface FetchNotesResponse {
+    notes: Note[];
+    totalPages: number;
 }
 
-const URL = 'https://notehub-public.goit.study/api/notes';
+export const fetchNotes = async (
+  page = 1,
+  query = '',
+  perPage = 12
+): Promise<FetchNotesResponse> => {
+  const params: Record<string, string | number> = { page, perPage };
+  if (query.trim()) params.search = query;
 
-export const fetchNotes = async (query: string, page: number): Promise<NotesHttpResponse> => {
-  const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
-  if (!token) {
-    throw new Error('NoteHub token is missing. Please set VITE_NOTEHUB_TOKEN in your .env file.');
-  }
-
-  try {
-    const parameters = new URLSearchParams({
-      ...(query !== '' ? { search: query } : {}),
-      page: page.toString(),
-    });
-    const response = await axios.get<NotesHttpResponse>(`${URL}?${parameters}`, {
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${token}`, // Додано префікс Bearer
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Fetch notes error:', error);
-    throw error instanceof Error ? error : new Error('Failed to fetch notes');
-  }
+  const res = await noteServiceClient.get<FetchNotesResponse>('/', { params });
+  return res.data;
 };
 
-export const createNote = async (newNote: NewNote): Promise<Note> => {
-  const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
-  if (!token) {
-    throw new Error('NoteHub token is missing. Please set VITE_NOTEHUB_TOKEN in your .env file.');
-  }
+export interface FetchNotesParams {
+  page?: number;
+  search?: string;
+  perPage?: number;
+}
 
-  try {
-    const response = await axios.post<Note>(URL, newNote, {
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${token}`, // Додано префікс Bearer
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Create note error:', error);
-    throw error instanceof Error ? error : new Error('Failed to create note');
-  }
+export const createNote = async (noteData: NewNoteData): Promise<Note> => {
+  const res = await noteServiceClient.post<Note>('/', noteData);
+  return res.data;
 };
 
-export const deleteNote = async (id: number): Promise<Note> => {
-  const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
-  if (!token) {
-    throw new Error('NoteHub token is missing. Please set VITE_NOTEHUB_TOKEN in your .env file.');
-  }
+export const deleteNote = async (noteId: number): Promise<Note> => {
+  const res = await noteServiceClient.delete<Note>(`/${noteId}`);
+  return res.data;
+};
 
-  try {
-    const response = await axios.delete<Note>(`${URL}/${id}`, {
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${token}`, // Додано префікс Bearer
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Delete note error:', error);
-    throw error instanceof Error ? error : new Error('Failed to delete note');
-  }
+export const fetchNoteById = async (id: number): Promise<Note> => {
+  const res = await noteServiceClient.get<Note>(`/${id}`);
+  return res.data;
 };
