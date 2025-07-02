@@ -15,7 +15,7 @@ interface NewNote {
 const URL = 'https://notehub-public.goit.study/api/notes';
 
 export const fetchNotes = async (query: string, page: number): Promise<NotesHttpResponse> => {
-  const token = import.meta.env.VITE_NOTEHUB_TOKEN;
+  const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
   if (!token) {
     throw new Error('NoteHub token is missing. Please set VITE_NOTEHUB_TOKEN in your .env file.');
   }
@@ -39,7 +39,7 @@ export const fetchNotes = async (query: string, page: number): Promise<NotesHttp
 };
 
 export const createNote = async (newNote: NewNote): Promise<Note> => {
-  const token = import.meta.env.VITE_NOTEHUB_TOKEN;
+  const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
   if (!token) {
     throw new Error('NoteHub token is missing. Please set VITE_NOTEHUB_TOKEN in your .env file.');
   }
@@ -59,7 +59,7 @@ export const createNote = async (newNote: NewNote): Promise<Note> => {
 };
 
 export const deleteNote = async (id: number): Promise<Note> => {
-  const token = import.meta.env.VITE_NOTEHUB_TOKEN;
+  const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
   if (!token) {
     throw new Error('NoteHub token is missing. Please set VITE_NOTEHUB_TOKEN in your .env file.');
   }
